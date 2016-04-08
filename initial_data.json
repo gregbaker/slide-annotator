@@ -33,6 +33,7 @@
     "course": 1,
     "name": "Introduction",
     "slug": "introduction",
+    "order": 1,
     "data": "{}"
   }
 },
@@ -43,6 +44,7 @@
     "deck": 1,
     "title": "First Slide",
     "slug": "first-slide",
+    "order": 1,
     "content": "<h2>First Slide</h2>\r\n<p>Hello world</p>",
     "data": "{}"
   }
@@ -54,6 +56,7 @@
     "deck": 1,
     "title": "Slide 2",
     "slug": "slide-2",
+    "order": 2,
     "content": "<h2>Slide 2</h2>\r\n<ul>\r\n<li>A</li>\r\n<li>B</li>\r\n<li>C</li>\r\n</ul>",
     "data": "{}"
   }
@@ -65,6 +68,7 @@
     "deck": 1,
     "title": "Three",
     "slug": "three",
+    "order": 3,
     "content": "<h2>Slide 3</h2>\r\n<ul>\r\n<li>D</li>\r\n<li>E</li>\r\n<li>F</li>\r\n</ul>",
     "data": "{}"
   }

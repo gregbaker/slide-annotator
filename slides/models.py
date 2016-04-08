@@ -18,7 +18,12 @@ class Deck(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=False, blank=False)
     slug = AutoSlugField(populate_from='name', max_length=20, unique_with=['course'], db_index=True)
+    order = models.PositiveSmallIntegerField(null=False)
     data = JSONField(default=dict)
+
+    class Meta:
+        unique_together = (('course', 'order'),)
+        ordering = ['order']
 
     def __str__(self):
         return self.course.name + ': ' + self.name
@@ -28,8 +33,13 @@ class Slide(models.Model):
     deck = models.ForeignKey(Deck, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, null=False, blank=False)
     slug = AutoSlugField(populate_from='title', max_length=20, unique_with=['deck'], db_index=True)
+    order = models.PositiveSmallIntegerField(null=False)
     content = models.TextField()
     data = JSONField(default=dict)
+
+    class Meta:
+        unique_together = (('deck', 'order'),)
+        ordering = ['order']
 
     def __str__(self):
         return str(self.title)
@@ -45,6 +55,7 @@ class Annotation(models.Model):
 
     class Meta:
         unique_together = (('slide', 'order'),)
+        ordering = ['order']
 
 
 class SlideShow(models.Model):
