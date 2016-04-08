@@ -1,0 +1,8 @@
+{% extends "slides/base.html" %}
+
+{% block title %}{{ deck.course.name }}: {{ deck.name }}{% endblock %}
+
+{% block content %}
+{{ slide.as_html }}
+
+{% endblock %}

@@ -1,0 +1,72 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$24000$NTzN6uwC56Xu$kraJfCH6q3dLLpdUFbowIIZemKRScOojUHPzVuIq6Ew=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "greg",
+    "first_name": "",
+    "last_name": "",
+    "email": "greg@example.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2016-04-08T19:31:32.624Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "slides.course",
+  "pk": 1,
+  "fields": {
+    "name": "CMPT 470",
+    "slug": "cmpt-470",
+    "data": "{}"
+  }
+},
+{
+  "model": "slides.deck",
+  "pk": 1,
+  "fields": {
+    "course": 1,
+    "name": "Introduction",
+    "slug": "introduction",
+    "data": "{}"
+  }
+},
+{
+  "model": "slides.slide",
+  "pk": 1,
+  "fields": {
+    "deck": 1,
+    "title": "First Slide",
+    "slug": "first-slide",
+    "content": "<h2>First Slide</h2>\r\n<p>Hello world</p>",
+    "data": "{}"
+  }
+},
+{
+  "model": "slides.slide",
+  "pk": 2,
+  "fields": {
+    "deck": 1,
+    "title": "Slide 2",
+    "slug": "slide-2",
+    "content": "<h2>Slide 2</h2>\r\n<ul>\r\n<li>A</li>\r\n<li>B</li>\r\n<li>C</li>\r\n</ul>",
+    "data": "{}"
+  }
+},
+{
+  "model": "slides.slide",
+  "pk": 3,
+  "fields": {
+    "deck": 1,
+    "title": "Three",
+    "slug": "three",
+    "content": "<h2>Slide 3</h2>\r\n<ul>\r\n<li>D</li>\r\n<li>E</li>\r\n<li>F</li>\r\n</ul>",
+    "data": "{}"
+  }
+}
+]

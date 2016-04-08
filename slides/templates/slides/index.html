@@ -1,0 +1,13 @@
+{% extends "slides/base.html" %}
+
+{% block title %}Slides{% endblock %}
+
+{% block content %}
+<h1>Slides</h1>
+<ul>
+{% for deck in decks %}
+<li><a href="{% url 'slides.views.deck' course_slug=deck.course.slug deck_slug=deck.slug %}">{{ deck }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}
