@@ -6,7 +6,13 @@
 <h1>Slides</h1>
 <ul>
 {% for deck in decks %}
-<li><a href="{% url 'slides.views.deck' course_slug=deck.course.slug deck_slug=deck.slug %}">{{ deck }}</a></li>
+<li><a href="{% url 'slides.views.deck' course_slug=deck.course.slug deck_slug=deck.slug %}">{{ deck }}</a>
+  <ul>
+  {% for slide in deck.slide_set.all %}
+    <li><a href="{% url 'slides.views.deck' course_slug=deck.course.slug deck_slug=deck.slug slide_slug=slide.slug %}">{{ slide }}</a></li>
+  {% endfor %}
+  </ul>
+</li>
 {% endfor %}
 </ul>
 

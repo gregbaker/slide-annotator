@@ -2,11 +2,23 @@
 {% load staticfiles %}
 
 {% block headextra %}
-<script src="{% static 'slides.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+<script>
+var slide_content_url = "{% filter escapejs %}{% url 'slides.views.slide_data' course_slug=deck.course.slug deck_slug=deck.slug slide_slug=slide.slug %}{% endfilter %}";
+</script>
 {% endblock %}
 
 {% block title %}{{ deck.course.name }}: {{ deck.name }}{% endblock %}
 
 {% block content %}
-{{ slide.as_html }}
+{# slide.as_html #}
+<main id="content"></main>
+
+<script src="{% static 'slides.js' %}"></script>
+<script type="text/babel"src="{% static 'react-logic.jsx' %}"></script>
+
 {% endblock %}
