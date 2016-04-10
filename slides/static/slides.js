@@ -13,16 +13,19 @@ function makeSVG(tag, attrs) {
 
 
 function updatePath(svg, path, pointsX, pointsY) {
-  var d = 'M' + pointsX[0].toFixed(pathDecimals) + ',' + pointsY[0].toFixed(pathDecimals);
   var n = pointsX.length;
+  var d;
 
   if ( n > 1 ) {
+    d = 'M' + pointsX[0].toFixed(pathDecimals) + ',' + pointsY[0].toFixed(pathDecimals);
     d += ' L'
+    for ( var i=1; i<n; i++ ) {
+      d += ' ' + pointsX[i].toFixed(pathDecimals) + ',' + pointsY[i].toFixed(pathDecimals);
+    }
+    path.setAttribute('d', d);
+  } else if ( n == 1 ) {
+    // TODO: handle drawing a point
   }
-  for ( var i=1; i<n; i++ ) {
-    d += ' ' + pointsX[i].toFixed(pathDecimals) + ',' + pointsY[i].toFixed(pathDecimals);
-  }
-  path.setAttribute('d', d);
 }
 
 function setup() {
@@ -80,15 +83,24 @@ function setup() {
   var widthUnits = 100;
   var heightUnits = 100/aspect;
   var aspectHeight = widthUnits/aspect;
+  var slideSizeCSS;
   var body = document.getElementsByTagName('body').item(0);
   var paint = false;
   var path, pointsX, pointsY;
   var stroke_attrs = {
-    'stroke-width': 0.3,
+    'stroke-width': 0.25,
     'stroke': '#ff7700',
     'fill': 'none',
     'stroke-linejoin': 'round',
   };
+
+  if ( window.innerWidth/window.innerHeight > aspect ) {
+      // window wider than aspect ratio
+      slideSizeCSS = 'width: ' + (100*aspect) + 'vh; height: 100vh;';
+  } else {
+      // window higher than aspect ratio
+      slideSizeCSS = 'width: 100vw; height: ' + (100 / aspect) + 'vw;';
+  }
 
   // Create SVG element
   var svg = makeSVG('svg', {
@@ -96,15 +108,15 @@ function setup() {
     width: widthUnits,
     height: heightUnits,
     viewBox: '0 0 ' + widthUnits + ' ' + heightUnits,
-    style: 'z-index: 10; position: absolute; top: 0; left: 0; width: 100vw; height: ' + (100 / aspect + 'vw') + ';'
+    style: 'z-index: 10; position: absolute; top: 0; left: 0; ' + slideSizeCSS,
   });
+  var defs = makeSVG('defs', {});
+  svg.appendChild(defs);
 
   // Style body as a slide
-  body.setAttribute('style', 'box-sizing: border-box; width: 100vw; height: ' + (100 / aspect) + 'vw');
+  body.setAttribute('style', 'box-sizing: border-box; ' + slideSizeCSS);
   body.appendChild(svg);
 
-  // adapted to SVG from http://www.williammalone.com/articles/create-html5-canvas-javascript-drawing-app/
-  // some help from https://github.com/krisrak/html5-canvas-drawing-app
   svg.addEventListener('mousedown', mousedown, false);
   svg.addEventListener('touchstart', touchstart, false);
   svg.addEventListener('mousemove', mousemove, false);
