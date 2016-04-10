@@ -26,6 +26,57 @@ function updatePath(svg, path, pointsX, pointsY) {
 }
 
 function setup() {
+  function pathStart(x, y) {
+    var x = x / body.offsetWidth * widthUnits;
+    var y = y / body.offsetHeight * heightUnits;
+
+    paint = true;
+    pointsX = [x];
+    pointsY = [y];
+
+    path = makeSVG('path', stroke_attrs);
+    svg.appendChild(path);
+
+    updatePath(svg, path, pointsX, pointsY);
+  }
+
+  function pathMore(x, y) {
+    if(paint){
+      var x = x / body.offsetWidth * widthUnits;
+      var y = y / body.offsetHeight * heightUnits;
+
+      pointsX.push(x);
+      pointsY.push(y);
+
+      updatePath(svg, path, pointsX, pointsY);
+    }
+  }
+
+  function pathEnd() {
+    paint = false;
+  }
+
+  function mousedown(e) {
+    e.preventDefault();
+    pathStart(e.pageX, e.pageY);
+  }
+  function touchstart(e) {
+    e.preventDefault();
+    pathStart(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+  }
+  function mousemove(e) {
+    e.preventDefault();
+    pathMore(e.pageX, e.pageY);
+  }
+  function touchmove(e) {
+    e.preventDefault();
+    pathMore(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+  }
+  function drawstop(e) {
+    pathEnd();
+  }
+
+
   var widthUnits = 100;
   var heightUnits = 100/aspect;
   var aspectHeight = widthUnits/aspect;
@@ -45,7 +96,7 @@ function setup() {
     width: widthUnits,
     height: heightUnits,
     viewBox: '0 0 ' + widthUnits + ' ' + heightUnits,
-    style: 'position: absolute; top: 0; left: 0; width: 100vw; height: ' + (100 / aspect + 'vw') + ';'
+    style: 'z-index: 10; position: absolute; top: 0; left: 0; width: 100vw; height: ' + (100 / aspect + 'vw') + ';'
   });
 
   // Style body as a slide
@@ -53,38 +104,15 @@ function setup() {
   body.appendChild(svg);
 
   // adapted to SVG from http://www.williammalone.com/articles/create-html5-canvas-javascript-drawing-app/
-  svg.addEventListener('mousedown', function (e) {
-    var x = e.pageX / body.offsetWidth * widthUnits;
-    var y = e.pageY / body.offsetHeight * heightUnits;
-
-    paint = true;
-    pointsX = [x];
-    pointsY = [y];
-
-    path = makeSVG('path', stroke_attrs);
-    svg.appendChild(path);
-
-    updatePath(svg, path, pointsX, pointsY);
-  });
-
-  svg.addEventListener('mousemove', function (e) {
-    if(paint){
-      var x = e.pageX / body.offsetWidth * widthUnits;
-      var y = e.pageY / body.offsetHeight * heightUnits;
-
-      pointsX.push(x);
-      pointsY.push(y);
-
-      updatePath(svg, path, pointsX, pointsY);
-    }
-  });
-
-  svg.addEventListener('mouseup', function (e) {
-    paint = false;
-  });
-  svg.addEventListener('mouseleave', function (e) {
-    paint = false;
-  });
+  // some help from https://github.com/krisrak/html5-canvas-drawing-app
+  svg.addEventListener('mousedown', mousedown, false);
+  svg.addEventListener('touchstart', touchstart, false);
+  svg.addEventListener('mousemove', mousemove, false);
+  svg.addEventListener('touchmove', touchmove, false);
+  svg.addEventListener('mouseup', drawstop, false);
+  svg.addEventListener('touchend', drawstop, false);
+  svg.addEventListener('mouseleave', drawstop, false);
+  svg.addEventListener('touchleave', drawstop, false);
 }
 
 document.addEventListener("DOMContentLoaded", setup);
