@@ -9,7 +9,7 @@ package "redis-server"
 
 execute 'pip' do
   cwd '/home/vagrant/server'
-  command 'pip3 install -r requirements.txt'
+  command 'pip3 install -r requirements.txt --upgrade'
 end
 
 execute 'migrate' do

@@ -1,6 +1,6 @@
 body {
-  max-width: 40em;
-  line-height: 1.4;
-  margin: 1em auto;
-  color: #333;
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 1px solid red;
 }
