@@ -72,5 +72,16 @@
     "content": "<h2>Slide 3</h2>\r\n<ul>\r\n<li>D</li>\r\n<li>E</li>\r\n<li>F</li>\r\n</ul>",
     "data": "{}"
   }
+},
+{
+  "model": "slides.slideshow",
+  "pk": 1,
+  "fields": {
+    "course": 1,
+    "user": 1,
+    "current_slide": 2,
+    "last_touch": "2016-04-09T20:54:07Z",
+    "data": "{}"
+  }
 }
 ]

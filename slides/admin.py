@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Deck, Slide, Annotation
+from .models import Course, Deck, Slide, Annotation, SlideShow
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
@@ -16,3 +16,7 @@ class SlideAdmin(admin.ModelAdmin):
 @admin.register(Annotation)
 class AnnotationAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(SlideShow)
+class SlideShowAdmin(admin.ModelAdmin):
+    exclude = ('data',)

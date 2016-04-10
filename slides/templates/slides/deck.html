@@ -1,4 +1,9 @@
 {% extends "slides/base.html" %}
+{% load staticfiles %}
+
+{% block headextra %}
+<script src="{% static 'slides.js' %}"></script>
+{% endblock %}
 
 {% block title %}{{ deck.course.name }}: {{ deck.name }}{% endblock %}
 
