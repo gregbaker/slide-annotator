@@ -75,11 +75,26 @@ var AnnotationSet = React.createClass({
         var x = x / this.props.body.offsetWidth * widthUnits;
         var y = y / this.props.body.offsetHeight * heightUnits;
 
+        var workingElement = {
+            id: 'newid-' + this.state.numAdded,
+            order: 9999 + this.state.numAdded,
+            data: {elements: [{
+                elt: 'path',
+                pointsX: [x],
+                pointsY: [y],
+            }]},
+        }
+
         this.setState({
             paint: true,
-            pointsX: [x],
-            pointsY: [y],
+            //pointsX: [x],
+            //pointsY: [y],
+            numAdded: this.state.numAdded + 1,
+            previousLength: this.state.data.length,
+            workingElement: workingElement,
+            data: this.state.data.concat([workingElement]),
         });
+
 
         //path = makeSVG('path', stroke_attrs);
         //svg.appendChild(path);
@@ -90,10 +105,13 @@ var AnnotationSet = React.createClass({
         var x = x / this.props.body.offsetWidth * widthUnits;
         var y = y / this.props.body.offsetHeight * heightUnits;
 
+        var workingElement = this.state.workingElement;
+        workingElement.data.elements[0].pointsX = workingElement.data.elements[0].pointsX.concat([x])
+        workingElement.data.elements[0].pointsY = workingElement.data.elements[0].pointsY.concat([y])
+
         this.setState(function(oldState, props) {
             return {
-                pointsX: oldState.pointsX.concat([x]),
-                pointsY: oldState.pointsY.concat([y]),
+                workingElement: workingElement,
             }
         });
 
@@ -102,7 +120,6 @@ var AnnotationSet = React.createClass({
         this.setState({
             paint: false,
         });
-
     },
 
     handleMouseDown: function(e) {
@@ -115,9 +132,21 @@ var AnnotationSet = React.createClass({
             this.pathMore(e.pageX, e.pageY);
         }
     },
-    handleDrawStop: function(e) {
+    handleTouchStart: function(e) {
         e.preventDefault();
-        this.pathEnd();
+        this.pathStart(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+    },
+    handleTouchMove: function(e) {
+        if ( this.state.paint ) {
+            e.preventDefault();
+            this.pathMore(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+        }
+    },
+    handleDrawStop: function(e) {
+        if ( this.state.paint ) {
+            e.preventDefault();
+            this.pathEnd();
+        }
     },
 
     loadFromServer: function () {
@@ -134,7 +163,15 @@ var AnnotationSet = React.createClass({
         });
     },
     getInitialState: function () {
-        return {data: [], paint: false, pointsX: [], pointsY: []};
+        return {
+            data: [],
+            paint: false,
+            numAdded: 0,
+            pointsX: [],
+            pointsY: [],
+            workingElement: null,
+            previousLength: 0,
+        };
     },
     componentDidMount: function() {
         this.loadFromServer();
@@ -150,6 +187,10 @@ var AnnotationSet = React.createClass({
             onMouseMove: this.handleMouseMove,
             onMouseUp: this.handleDrawStop,
             onMouseLeave: this.handleDrawStop,
+            onTouchStart: this.handleTouchStart,
+            onTouchMove: this.handleTouchMove,
+            onMouseUp: this.handleDrawStop,
+            onMouseCancel: this.handleDrawStop,
         };
 
         return (
