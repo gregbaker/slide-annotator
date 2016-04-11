@@ -11,6 +11,8 @@
 var slide_pk = {% filter escapejs %}{{ slide.pk }}{% endfilter %};
 var slide_api_url = "{% filter escapejs %}{% url 'slide-detail' pk=slide.pk %}{% endfilter %}";
 var annotation_api_url = "{% filter escapejs %}{% url 'annotation-list' slide_pk=slide.pk %}{% endfilter %}";
+var csrf_token = "{{ csrf_token|escapejs }}";
+var presenter = true;
 </script>
 {% endblock %}
 
@@ -20,7 +22,6 @@ var annotation_api_url = "{% filter escapejs %}{% url 'annotation-list' slide_pk
 {# slide.as_html #}
 <main id="content"></main>
 
-<script src="{% static 'slides.js' %}"></script>
 <script type="text/babel" src="{% static 'react-logic.js' %}"></script>
 
 {% endblock %}
