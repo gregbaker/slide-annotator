@@ -87,19 +87,12 @@ var AnnotationSet = React.createClass({
 
         this.setState({
             paint: true,
-            //pointsX: [x],
-            //pointsY: [y],
             numAdded: this.state.numAdded + 1,
             previousLength: this.state.data.length,
             workingElement: workingElement,
             data: this.state.data.concat([workingElement]),
         });
 
-
-        //path = makeSVG('path', stroke_attrs);
-        //svg.appendChild(path);
-
-        //updatePath(svg, path, pointsX, pointsY);
     },
     pathMore: function(x, y) {
         var x = x / this.props.body.offsetWidth * widthUnits;
@@ -167,8 +160,6 @@ var AnnotationSet = React.createClass({
             data: [],
             paint: false,
             numAdded: 0,
-            pointsX: [],
-            pointsY: [],
             workingElement: null,
             previousLength: 0,
         };

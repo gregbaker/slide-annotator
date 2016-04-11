@@ -2,6 +2,8 @@ from django.db import models
 from autoslug import AutoSlugField
 from jsonfield import JSONField
 from django.conf import settings
+from django.db import transaction
+from django.db.models import Max
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
@@ -56,6 +58,14 @@ class Annotation(models.Model):
     class Meta:
         unique_together = (('slide', 'order'),)
         ordering = ['order']
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if not self.order:
+                maxorder = Annotation.objects.filter(slide_id=self.slide_id).aggregate(Max('order'))['order__max']
+                self.order = maxorder + 1
+
+            super(Annotation, self).save(*args, **kwargs)
 
 
 class SlideShow(models.Model):

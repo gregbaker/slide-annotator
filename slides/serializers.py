@@ -20,4 +20,4 @@ class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
     data = JSONSerializerField()
     class Meta:
         model = Annotation
-        fields = ('id', 'order', 'data')
+        fields = ('id', 'data')
