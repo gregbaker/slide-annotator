@@ -49,7 +49,7 @@ class Slide(models.Model):
 
 
 class Annotation(models.Model):
-    slide = models.ForeignKey(Slide, on_delete=models.CASCADE)
+    slide = models.ForeignKey(Slide, on_delete=models.CASCADE, related_name='annotations')
     order = models.PositiveSmallIntegerField(null=False)
     data = JSONField(default=dict)
 
