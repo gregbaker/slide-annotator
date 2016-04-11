@@ -54,6 +54,9 @@ class Annotation(models.Model):
     slide = models.ForeignKey(Slide, on_delete=models.CASCADE, related_name='annotations')
     order = models.PositiveSmallIntegerField(null=False)
     data = JSONField(default=dict)
+    # data  ::= {"elements": [elementObj*]}
+    # elementObj ::= pathObj
+    # pathObj ::= {"elt": "path", "pointsX": [float], "pointsY: [float]}
 
     class Meta:
         unique_together = (('slide', 'order'),)
@@ -63,7 +66,10 @@ class Annotation(models.Model):
         with transaction.atomic():
             if not self.order:
                 maxorder = Annotation.objects.filter(slide_id=self.slide_id).aggregate(Max('order'))['order__max']
-                self.order = maxorder + 1
+                if maxorder is None:
+                    self.order = 1
+                else:
+                    self.order = maxorder + 1
 
             super(Annotation, self).save(*args, **kwargs)
 

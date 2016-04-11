@@ -17,7 +17,8 @@ class SlideSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
+    slide_id = serializers.IntegerField(required=False)
     data = JSONSerializerField()
     class Meta:
         model = Annotation
-        fields = ('id', 'data')
+        fields = ('id', 'slide_id', 'data')
