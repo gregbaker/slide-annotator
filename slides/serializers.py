@@ -11,13 +11,13 @@ class JSONSerializerField(serializers.Field):
 
 
 class SlideSerializer(serializers.HyperlinkedModelSerializer):
-    annotations = serializers.HyperlinkedRelatedField(view_name='annotation-detail', many=True, read_only=True)
     class Meta:
         model = Slide
-        fields = ('id', 'title', 'slug', 'content', 'annotations')
+        fields = ('id', 'title', 'slug', 'content')
+
 
 class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
     data = JSONSerializerField()
     class Meta:
         model = Annotation
-        fields = ('id', 'slide', 'order', 'data')
+        fields = ('id', 'order', 'data')

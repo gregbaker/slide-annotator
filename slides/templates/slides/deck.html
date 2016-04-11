@@ -8,7 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 <script>
-var slide_content_url = "{% filter escapejs %}{% url 'slides.views.slide_data' course_slug=deck.course.slug deck_slug=deck.slug slide_slug=slide.slug %}{% endfilter %}";
+var slide_pk = {% filter escapejs %}{{ slide.pk }}{% endfilter %};
+var slide_api_url = "{% filter escapejs %}{% url 'slide-detail' pk=slide.pk %}{% endfilter %}";
+var annotation_api_url = "{% filter escapejs %}{% url 'annotation-list' slide_pk=slide.pk %}{% endfilter %}";
 </script>
 {% endblock %}
 
@@ -19,6 +21,6 @@ var slide_content_url = "{% filter escapejs %}{% url 'slides.views.slide_data' c
 <main id="content"></main>
 
 <script src="{% static 'slides.js' %}"></script>
-<script type="text/babel"src="{% static 'react-logic.jsx' %}"></script>
+<script type="text/babel" src="{% static 'react-logic.js' %}"></script>
 
 {% endblock %}

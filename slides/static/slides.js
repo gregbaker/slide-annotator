@@ -115,7 +115,7 @@ function setup() {
 
   // Style body as a slide
   body.setAttribute('style', 'box-sizing: border-box; ' + slideSizeCSS);
-  body.appendChild(svg);
+  //body.appendChild(svg);
 
   svg.addEventListener('mousedown', mousedown, false);
   svg.addEventListener('touchstart', touchstart, false);

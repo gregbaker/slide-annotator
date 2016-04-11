@@ -11,3 +11,6 @@ class AnnotationViewSet(viewsets.ModelViewSet):
     queryset = Annotation.objects.all()
     serializer_class = AnnotationSerializer
 
+    def get_queryset(self):
+        slide_pk = self.kwargs['slide_pk']
+        return Annotation.objects.filter(slide_id=slide_pk)
