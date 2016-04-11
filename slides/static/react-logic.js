@@ -1,5 +1,7 @@
 var aspect = 4/3;
 var pathDecimals = 2;
+var widthUnits = 100;
+var heightUnits = 100/aspect;
 
 var stroke_attrs = function() {
     return {
@@ -12,8 +14,6 @@ var stroke_attrs = function() {
 
 var svg_attrs = function() {
     var slideSizeCSS;
-    var widthUnits = 100;
-    var heightUnits = 100/aspect;
     var style = {
         zIndex: 10,
         position: 'absolute',
@@ -37,7 +37,7 @@ var svg_attrs = function() {
         viewBox: '0 0 ' + widthUnits + ' ' + heightUnits,
         style: style,
     }
-}
+};
 
 var pathAnnotationToPath = function (ann, id, i) {
     var n = ann.pointsX.length;
@@ -71,6 +71,55 @@ var Annotation = React.createClass({
 });
 
 var AnnotationSet = React.createClass({
+    pathStart: function(x, y) {
+        var x = x / this.props.body.offsetWidth * widthUnits;
+        var y = y / this.props.body.offsetHeight * heightUnits;
+
+        this.setState({
+            paint: true,
+            pointsX: [x],
+            pointsY: [y],
+        });
+
+        //path = makeSVG('path', stroke_attrs);
+        //svg.appendChild(path);
+
+        //updatePath(svg, path, pointsX, pointsY);
+    },
+    pathMore: function(x, y) {
+        var x = x / this.props.body.offsetWidth * widthUnits;
+        var y = y / this.props.body.offsetHeight * heightUnits;
+
+        this.setState(function(oldState, props) {
+            return {
+                pointsX: oldState.pointsX.concat([x]),
+                pointsY: oldState.pointsY.concat([y]),
+            }
+        });
+
+    },
+    pathEnd: function() {
+        this.setState({
+            paint: false,
+        });
+
+    },
+
+    handleMouseDown: function(e) {
+        e.preventDefault();
+        this.pathStart(e.pageX, e.pageY);
+    },
+    handleMouseMove: function(e) {
+        if ( this.state.paint ) {
+            e.preventDefault();
+            this.pathMore(e.pageX, e.pageY);
+        }
+    },
+    handleDrawStop: function(e) {
+        e.preventDefault();
+        this.pathEnd();
+    },
+
     loadFromServer: function () {
         $.ajax({
             url: annotation_api_url,
@@ -85,7 +134,7 @@ var AnnotationSet = React.createClass({
         });
     },
     getInitialState: function () {
-        return {data: []};
+        return {data: [], paint: false, pointsX: [], pointsY: []};
     },
     componentDidMount: function() {
         this.loadFromServer();
@@ -96,8 +145,15 @@ var AnnotationSet = React.createClass({
                 <Annotation key={a.id} a={a}/>
             );
         });
+        var svgEvents = {
+            onMouseDown: this.handleMouseDown,
+            onMouseMove: this.handleMouseMove,
+            onMouseUp: this.handleDrawStop,
+            onMouseLeave: this.handleDrawStop,
+        };
+
         return (
-            <svg id="annotation-set" {...svg_attrs()} >{annotations}</svg>
+            <svg id="annotation-set" {...svg_attrs()} {...svgEvents} >{annotations}</svg>
         );
     }
 });
@@ -127,10 +183,11 @@ var Slide = React.createClass({
         this.loadFromServer();
     },
     render: function() {
+        var body = document.getElementsByTagName('body').item(0);
         return (
             <div id="slide">
             <div id="slide-contents" dangerouslySetInnerHTML={this.rawMarkup()}></div>
-            <AnnotationSet/>
+            <AnnotationSet body={body} />
             </div>
         );
     }
