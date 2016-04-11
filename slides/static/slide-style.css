@@ -1,6 +1,49 @@
-body {
+* {
+  /* Meyer's reset doesn't catch this */
+  text-decoration: none;
+}
+html {
+  font-family: "Source Sans Pro", "Helvetica", "Arial", sans-serif;
+  background-color: #fff;
+  color: #333;
+  line-height: 1.4;
+}
+code, pre {
+  font-family: "Source Code Pro", "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
+}
+h2 {
+  font-weight: bold;
+  font-size: 150%;
+  text-align: center;
+  margin: 0.5em 1rem 1em 1em;
+}
+p {
+  margin: 0.75em 0;
+}
+ul {
+  list-style-type: circle;
+  margin: 0.75em 1.5em;
+}
+ul li {
+  margin: 0.25em 0;
+}
+
+
+body.slide, body.slide main, body.slide div#slide {
   position: absolute;
   margin: 0;
   padding: 0;
-  border: 1px solid red;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100rem;
+}
+div#slide {
+  font-size: 4rem;
+  background-color: #eee;
+}
+#slide-contents {
+  margin: 1rem;
+}
+#slide-contents h2 {
+
 }

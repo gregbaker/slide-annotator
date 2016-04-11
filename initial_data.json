@@ -45,7 +45,7 @@
     "title": "First Slide",
     "slug": "first-slide",
     "order": 1,
-    "content": "<h2>First Slide</h2>\r\n<p>Hello world</p>",
+    "content": "<h2>First Slide</h2>\r\n<p>Hello world</p>\r\n<ul><li>first</li><li>second</li><li>The third bullet is longer. It needs to be longer so I can see what longer points look like on screen.</li></ul>",
     "data": "{}"
   }
 },
