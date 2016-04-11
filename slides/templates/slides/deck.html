@@ -19,9 +19,6 @@ var presenter = true;
 {% block title %}{{ deck.course.name }}: {{ deck.name }}{% endblock %}
 
 {% block content %}
-{# slide.as_html #}
-<main id="content"></main>
-
+<main id="slide-container"></main>
 <script type="text/babel" src="{% static 'react-logic.js' %}"></script>
-
 {% endblock %}

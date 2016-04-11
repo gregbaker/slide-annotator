@@ -4,8 +4,10 @@ var widthUnits = 100;
 var heightUnits = 100/aspect;
 var pollInterval = 2000;
 var fontVH = 1;
+var colors = ['#f00', '#0f0', '#00f'];
 
-var stroke_attrs = function() {
+
+var strokeAttrs = function() {
     return {
         strokeWidth: 0.25,
         stroke: '#ff7700',
@@ -56,31 +58,47 @@ var roundCoordinate = function (x) {
     return Math.round(x*factor)/factor
 };
 
-var pathAnnotationToPath = function (ann, id, i) {
-    var n = ann.pointsX.length;
-    var d;
-    var key = id + '-' + i
 
-    if ( n > 1 ) {
-        d = 'M' + ann.pointsX[0] + ',' + ann.pointsY[0];
-        d += ' L'
-        for ( var i=1; i<n; i++ ) {
-            d += ' ' + ann.pointsX[i] + ',' + ann.pointsY[i];
-        }
-        return <path key={key} {...stroke_attrs()} d={d} />
-    }
 
-};
+
+
+var Controls = React.createClass({
+
+    render: function () {
+        var colorControls = this.props.colors.map(function (c, i) {
+            var handleClick = function() {
+                this.props.changeStrokeColor(c);
+            }.bind(this);
+            return <rect key={c} x={1 + i*4} y={heightUnits-3} width="3" height="2" fill={c} onClick={handleClick} />;
+        }.bind(this));
+        return <g id="color-controls">{colorControls}</g>;
+    },
+});
+
 
 var Annotation = React.createClass({
+    pathAnnotationToPath: function (ann, id, i) {
+        var n = ann.pointsX.length;
+        var d;
+        var key = id + '-' + i
+
+        if ( n > 1 ) {
+            d = 'M' + ann.pointsX[0] + ',' + ann.pointsY[0];
+            d += ' L'
+            for ( var i=1; i<n; i++ ) {
+                d += ' ' + ann.pointsX[i] + ',' + ann.pointsY[i];
+            }
+            return <path key={key} {...this.props.defaultStrokeAttrs} d={d} />
+        }
+    },
     render: function() {
         var id = this.props.a.id;
         var elements = this.props.a.data.elements;
         var elts = elements.map(function (e, i) {
             if ( e.elt == 'path' ) {
-              return pathAnnotationToPath(e, id, i)
+              return this.pathAnnotationToPath(e, id, i)
             }
-        });
+        }.bind(this));
         return (
             <g key={id}>{elts}</g>
         );
@@ -89,8 +107,8 @@ var Annotation = React.createClass({
 
 var AnnotationSet = React.createClass({
     pathStart: function(x, y) {
-        var x = x / this.props.body.offsetWidth * widthUnits;
-        var y = y / this.props.body.offsetHeight * heightUnits;
+        var x = x / this.props.container.offsetWidth * widthUnits;
+        var y = y / this.props.container.offsetHeight * heightUnits;
 
         var workingElement = {
             id: 'newid-' + this.state.numAdded,
@@ -112,8 +130,8 @@ var AnnotationSet = React.createClass({
 
     },
     pathMore: function(x, y) {
-        var x = x / this.props.body.offsetWidth * widthUnits;
-        var y = y / this.props.body.offsetHeight * heightUnits;
+        var x = x / this.props.container.offsetWidth * widthUnits;
+        var y = y / this.props.container.offsetHeight * heightUnits;
 
         var workingElement = this.state.workingElement;
         var path = workingElement.data.elements[0];
@@ -184,6 +202,12 @@ var AnnotationSet = React.createClass({
         }
     },
 
+    changeStrokeColor: function(c) {
+        var sa = this.state.strokeAttrs;
+        sa.stroke = c;
+        this.setState({strokeAttrs: sa});
+    },
+
     loadFromServer: function () {
         $.ajax({
             url: annotation_api_url,
@@ -204,6 +228,7 @@ var AnnotationSet = React.createClass({
             numAdded: 0,
             workingElement: null,
             previousLength: 0,
+            strokeAttrs: strokeAttrs(),
         };
     },
     componentDidMount: function() {
@@ -213,9 +238,9 @@ var AnnotationSet = React.createClass({
     render: function() {
         var annotations = this.state.data.map(function (a) {
             return (
-                <Annotation key={a.id} a={a}/>
+                <Annotation key={a.id} a={a} defaultStrokeAttrs={this.state.strokeAttrs}/>
             );
-        });
+        }.bind(this));
         var svgEvents = {
             onMouseDown: this.handleMouseDown,
             onMouseMove: this.handleMouseMove,
@@ -228,7 +253,10 @@ var AnnotationSet = React.createClass({
         };
 
         return (
-            <svg id="annotation-set" {...svg_attrs()} {...svgEvents} >{annotations}</svg>
+            <svg id="annotation-set" {...svg_attrs()} {...svgEvents} >
+                {annotations}
+                <Controls colors={colors} changeStrokeColor={this.changeStrokeColor} />
+            </svg>
         );
     }
 });
@@ -258,24 +286,24 @@ var Slide = React.createClass({
         this.loadFromServer();
     },
     render: function() {
-        var html = document.getElementsByTagName('html').item(0);
-        var body = document.getElementsByTagName('body').item(0);
+        var html = document.documentElement;
+        var container = document.getElementById(this.props.containerId);
         var sizeStyle = size_props();
-        body.className = 'slide';
-        body.style.width = sizeStyle.width;
-        body.style.height = sizeStyle.height;
+        container.className = 'slide';
+        container.style.width = sizeStyle.width;
+        container.style.height = sizeStyle.height;
         // set font-size on <html> so 1rem is a predictable 1% of slide height.
         html.style.fontSize = sizeStyle.fontSize;
 
         return (
             <div id="slide">
             <div id="slide-contents" dangerouslySetInnerHTML={this.rawMarkup()}></div>
-            <AnnotationSet body={body} />
+            <AnnotationSet container={container} />
             </div>
         );
     }
 });
 ReactDOM.render(
-    <Slide />,
-    document.getElementById('content')
+    <Slide containerId='slide-container' />,
+    document.getElementById('slide-container')
 );
