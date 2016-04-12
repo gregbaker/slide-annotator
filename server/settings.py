@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'compressor',
     'rest_framework',
-    'channels',
+    #'channels',
     'slides',
 ]
 
@@ -122,3 +123,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "node_modules"),]
+STATIC_ROOT = '_static'
+COMPRESS_PRECOMPILERS = (
+   ('text/jsx', 'cat {infile} | ./node_modules/.bin/babel --presets es2015,react > {outfile}'),
+)
+#COMPRESS_ENABLED = True
+#COMPRESS_OFFLINE = True

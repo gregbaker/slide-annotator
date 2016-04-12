@@ -1,12 +1,8 @@
 {% extends "slides/base.html" %}
 {% load staticfiles %}
+{% load compress %}
 
 {% block headextra %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 <script>
 var slide_pk = {% filter escapejs %}{{ slide.pk }}{% endfilter %};
 var slide_api_url = "{% filter escapejs %}{% url 'slide-detail' pk=slide.pk %}{% endfilter %}";
@@ -20,5 +16,17 @@ var presenter = true;
 
 {% block content %}
 <main id="slide-container"></main>
+
+
+{% compress js %}
+<script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+<script src="{% static 'react/dist/react.min.js' %}"></script>
+<script src="{% static 'react-dom/dist/react-dom.min.js' %}"></script>
+{% endcompress %}
+{% compress js %}
+<!--script type="text/jsx" src="{% static 'react-logic.js' %}"></script-->
+{% endcompress %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
 <script type="text/babel" src="{% static 'react-logic.js' %}"></script>
+
 {% endblock %}

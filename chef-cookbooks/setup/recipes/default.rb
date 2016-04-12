@@ -12,6 +12,12 @@ execute 'pip' do
   command 'pip3 install -r requirements.txt --upgrade'
 end
 
+execute 'npm' do
+  cwd '/home/vagrant/server'
+  user 'vagrant'
+  command 'npm install --save react react-dom babel-preset-es2015 babel-preset-react babel-cli jquery'
+end
+
 execute 'migrate' do
   user 'vagrant'
   cwd '/home/vagrant/server'

@@ -1,15 +1,15 @@
 var aspect = 4/3;
 var pathDecimals = 2;
-var widthUnits = 100;
-var heightUnits = 100/aspect;
+var widthUnits = 10000;
+var heightUnits = 10000/aspect;
 var pollInterval = 2000;
-var fontVH = 1;
-var colors = ['#f00', '#0f0', '#00f'];
+var fontVH = 1; /* percent of slide height represented by 1rem */
+var colors = ['f00', '0f0', '00f'];
 
 
 var strokeAttrs = function() {
     return {
-        strokeWidth: 0.25,
+        strokeWidth: 25,
         stroke: '#ff7700',
         fill: 'none',
         strokeLinejoin: 'round',
@@ -54,8 +54,7 @@ var svg_attrs = function () {
 };
 
 var roundCoordinate = function (x) {
-    var factor = Math.pow(10,pathDecimals);
-    return Math.round(x*factor)/factor
+    return Math.round(x);
 };
 
 
@@ -63,15 +62,17 @@ var roundCoordinate = function (x) {
 
 
 var Controls = React.createClass({
-
     render: function () {
         var colorControls = this.props.colors.map(function (c, i) {
             var handleClick = function() {
-                this.props.changeStrokeColor(c);
+                this.props.changeStrokeColor('#' + c);
             }.bind(this);
-            return <rect key={c} x={1 + i*4} y={heightUnits-3} width="3" height="2" fill={c} onClick={handleClick} />;
+            var style = {
+                backgroundColor: '#' + c
+            }
+            return (<span key={c} class="color-select" id={'color-select-' + c} style={style} onClick={handleClick} />);
         }.bind(this));
-        return <g id="color-controls">{colorControls}</g>;
+        return (<span id="color-controls">{colorControls}</span>);
     },
 });
 
@@ -209,6 +210,10 @@ var AnnotationSet = React.createClass({
     },
 
     loadFromServer: function () {
+        if ( this.state.paint ) {
+            // don't update while we're mutating the state by drawing.
+            return;
+        }
         $.ajax({
             url: annotation_api_url,
             dataType: 'json',
@@ -253,10 +258,10 @@ var AnnotationSet = React.createClass({
         };
 
         return (
-            <svg id="annotation-set" {...svg_attrs()} {...svgEvents} >
-                {annotations}
-                <Controls colors={colors} changeStrokeColor={this.changeStrokeColor} />
-            </svg>
+            <div>
+            <svg id="annotation-set" {...svg_attrs()} {...svgEvents}>{annotations}</svg>
+            <Controls colors={colors} changeStrokeColor={this.changeStrokeColor} />
+            </div>
         );
     }
 });
