@@ -4,11 +4,9 @@
 
 {% block headextra %}
 <script>
-var slide_pk = {% filter escapejs %}{{ slide.pk }}{% endfilter %};
-var slide_api_url = "{% filter escapejs %}{% url 'slide-detail' pk=slide.pk %}{% endfilter %}";
-var annotation_api_url = "{% filter escapejs %}{% url 'annotation-list' slide_pk=slide.pk %}{% endfilter %}";
+var slide_pk = "{{ slide.pk|escapejs }}";
 var csrf_token = "{{ csrf_token|escapejs }}";
-var presenter = true;
+var presenter = false;
 </script>
 {% endblock %}
 
@@ -17,11 +15,11 @@ var presenter = true;
 {% block content %}
 <main id="slide-container"></main>
 
-
 {% compress js %}
 <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
 <script src="{% static 'react/dist/react.min.js' %}"></script>
 <script src="{% static 'react-dom/dist/react-dom.min.js' %}"></script>
+<script src="{% static 'config.js' %}"></script>
 {% endcompress %}
 {% compress js %}
 <!--script type="text/jsx" src="{% static 'react-logic.js' %}"></script-->

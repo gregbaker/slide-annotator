@@ -10,7 +10,7 @@ def slugs(*args):
 
 router = routers.DefaultRouter()
 router.register(r'slide-data', api_views.SlideViewSet)
-router.register(r'annotations/(?P<slide_pk>.+)', api_views.AnnotationViewSet)
+router.register(r'annotations/(?P<slide_pk>\d+)', api_views.AnnotationViewSet)
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),

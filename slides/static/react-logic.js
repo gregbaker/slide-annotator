@@ -1,16 +1,8 @@
-var aspect = 4/3;
-var pathDecimals = 2;
-var widthUnits = 10000;
-var heightUnits = 10000/aspect;
-var pollInterval = 2000;
-var fontVH = 1; /* percent of slide height represented by 1rem */
-var colors = ['f00', '0f0', '00f'];
-
 
 var strokeAttrs = function() {
     return {
-        strokeWidth: 25,
-        stroke: '#ff7700',
+        strokeWidth: widthUnits/400,
+        stroke: initialColor,
         fill: 'none',
         strokeLinejoin: 'round',
     };
@@ -63,25 +55,32 @@ var roundCoordinate = function (x) {
 
 var Controls = React.createClass({
     render: function () {
+
         var colorControls = this.props.colors.map(function (c, i) {
             var handleClick = function() {
-                this.props.changeStrokeColor('#' + c);
+                this.props.changeStrokeColor(c);
             }.bind(this);
             var style = {
-                backgroundColor: '#' + c
-            }
-            return (<span key={c} class="color-select" id={'color-select-' + c} style={style} onClick={handleClick} />);
+                backgroundColor: c
+            };
+            var selectedClass = this.props.selectedColor == c ? 'selected' : 'deselected'
+            return (<span key={c} className={'color-select ' + selectedClass} style={style} onClick={handleClick} />);
         }.bind(this));
-        return (<span id="color-controls">{colorControls}</span>);
+
+        return (<div id="controls">
+            <span id="color-controls">{colorControls}</span>
+            <span id="main-controls">
+                <span id="undo" className="fa fa-undo" onClick={this.props.undo}></span>
+            </span>
+        </div>);
     },
 });
 
 
 var Annotation = React.createClass({
-    pathAnnotationToPath: function (ann, id, i) {
+    pathAnnotationToPath: function (ann, key) {
         var n = ann.pointsX.length;
         var d;
-        var key = id + '-' + i
 
         if ( n > 1 ) {
             d = 'M' + ann.pointsX[0] + ',' + ann.pointsY[0];
@@ -89,15 +88,18 @@ var Annotation = React.createClass({
             for ( var i=1; i<n; i++ ) {
                 d += ' ' + ann.pointsX[i] + ',' + ann.pointsY[i];
             }
-            return <path key={key} {...this.props.defaultStrokeAttrs} d={d} />
+            return <path key={key} {...ann.strokeAttrs} d={d} />
+        } else {
+            return null;
         }
     },
     render: function() {
         var id = this.props.a.id;
         var elements = this.props.a.data.elements;
         var elts = elements.map(function (e, i) {
+            var key = id + '-' + i;
             if ( e.elt == 'path' ) {
-              return this.pathAnnotationToPath(e, id, i)
+              return this.pathAnnotationToPath(e, key)
             }
         }.bind(this));
         return (
@@ -116,6 +118,7 @@ var AnnotationSet = React.createClass({
             order: 9999 + this.state.numAdded,
             data: {elements: [{
                 elt: 'path',
+                strokeAttrs: this.state.strokeAttrs,
                 pointsX: [roundCoordinate(x)],
                 pointsY: [roundCoordinate(y)],
             }]},
@@ -152,7 +155,7 @@ var AnnotationSet = React.createClass({
         var workingElement = this.state.workingElement;
         var postData = {'data': workingElement.data};
         $.ajax({
-            url: annotation_api_url,
+            url: annotation_api_url(slide_pk),
             type: 'POST',
             dataType: 'json',
             contentType:"application/json; charset=utf-8",
@@ -208,6 +211,31 @@ var AnnotationSet = React.createClass({
         sa.stroke = c;
         this.setState({strokeAttrs: sa});
     },
+    undo: function() {
+        // undo == delete last annotation
+        var data = this.state.data;
+        if ( data.length == 0 ) {
+            return;
+        }
+        var ann_id = data[data.length - 1].id;
+
+        $.ajax({
+            url: annotation_detail_url(slide_pk, ann_id),
+            type: 'DELETE',
+            beforeSend: function (request)
+            {
+                request.setRequestHeader("X-CSRFToken", csrf_token);
+            },
+            success: function(d) {
+                this.setState({
+                    data: data.slice(0, data.length - 1)
+                });
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props, status, err.toString());
+            }.bind(this)
+        });
+    },
 
     loadFromServer: function () {
         if ( this.state.paint ) {
@@ -215,7 +243,7 @@ var AnnotationSet = React.createClass({
             return;
         }
         $.ajax({
-            url: annotation_api_url,
+            url: annotation_api_url(slide_pk),
             dataType: 'json',
             cache: 'false',
             success: function (data) {
@@ -243,7 +271,7 @@ var AnnotationSet = React.createClass({
     render: function() {
         var annotations = this.state.data.map(function (a) {
             return (
-                <Annotation key={a.id} a={a} defaultStrokeAttrs={this.state.strokeAttrs}/>
+                <Annotation key={a.id} a={a} />
             );
         }.bind(this));
         var svgEvents = {
@@ -260,7 +288,10 @@ var AnnotationSet = React.createClass({
         return (
             <div>
             <svg id="annotation-set" {...svg_attrs()} {...svgEvents}>{annotations}</svg>
-            <Controls colors={colors} changeStrokeColor={this.changeStrokeColor} />
+            <Controls
+                undo={this.undo}
+                colors={colors} selectedColor={this.state.strokeAttrs.stroke} changeStrokeColor={this.changeStrokeColor}
+            />
             </div>
         );
     }
@@ -269,7 +300,7 @@ var AnnotationSet = React.createClass({
 var Slide = React.createClass({
     loadFromServer: function () {
         $.ajax({
-            url: slide_api_url,
+            url: slide_api_url(slide_pk),
             dataType: 'json',
             cache: 'false',
             success: function (data) {
