@@ -45,13 +45,16 @@ ul li {
   bottom: 1rem;
   z-index: 20;
 }
+.control {
+  cursor: pointer;
+  margin: 0 1rem;
+  box-sizing: border-box;
+}
 #color-controls .color-select {
   display: inline-block;
   border: 1px solid black;
   height: 4rem;
   width: 5rem;
-  margin: 0 1rem;
-  box-sizing: border-box;
 }
 #color-controls .selected {
   border-width: 3px;

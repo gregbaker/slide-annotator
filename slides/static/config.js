@@ -16,5 +16,3 @@ var annotation_api_url = function (pk) {
 var annotation_detail_url = function (pk, ann_pk) {
     return '/api/annotations/' + pk + '/' + ann_pk + '/';
 };
-
-

@@ -7,6 +7,11 @@ from django.db.models import Max
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+STATUS_CHOICES = [
+    ('A', 'Active'),
+    ('D', 'Deleted'),
+]
+
 class Course(models.Model):
     name = models.CharField(max_length=200, null=False, blank=False)
     slug = AutoSlugField(populate_from='name', max_length=20, unique=True, db_index=True)
@@ -21,6 +26,7 @@ class Deck(models.Model):
     name = models.CharField(max_length=200, null=False, blank=False)
     slug = AutoSlugField(populate_from='name', max_length=20, unique_with=['course'], db_index=True)
     order = models.PositiveSmallIntegerField(null=False)
+    status = models.CharField(max_length=1, null=False, blank=False, choices=STATUS_CHOICES, default='A')
     data = JSONField(default=dict)
 
     class Meta:
@@ -37,6 +43,7 @@ class Slide(models.Model):
     slug = AutoSlugField(populate_from='title', max_length=20, unique_with=['deck'], db_index=True)
     order = models.PositiveSmallIntegerField(null=False)
     content = models.TextField()
+    status = models.CharField(max_length=1, null=False, blank=False, choices=STATUS_CHOICES, default='A')
     data = JSONField(default=dict)
 
     class Meta:
@@ -49,10 +56,10 @@ class Slide(models.Model):
     def as_html(self):
         return mark_safe(self.content)
 
-
 class Annotation(models.Model):
     slide = models.ForeignKey(Slide, on_delete=models.CASCADE, related_name='annotations')
     order = models.PositiveSmallIntegerField(null=False)
+    status = models.CharField(max_length=1, null=False, blank=False, choices=STATUS_CHOICES, default='A')
     data = JSONField(default=dict)
     # data  ::= {"elements": [elementObj*]}
     # elementObj ::= pathObj
@@ -72,6 +79,11 @@ class Annotation(models.Model):
                     self.order = maxorder + 1
 
             super(Annotation, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # soft delete so we can redo an undo.
+        self.status = 'D'
+        self.save()
 
 
 class SlideShow(models.Model):

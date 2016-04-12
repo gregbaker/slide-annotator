@@ -1,6 +1,6 @@
 from .models import Slide, Annotation
-from rest_framework import viewsets
 from .serializers import SlideSerializer, AnnotationSerializer
+from rest_framework import viewsets
 
 
 class SlideViewSet(viewsets.ModelViewSet):

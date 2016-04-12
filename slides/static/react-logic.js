@@ -55,7 +55,9 @@ var roundCoordinate = function (x) {
 
 var Controls = React.createClass({
     render: function () {
-
+        if ( !this.props.presenter ) {
+            return null;
+        }
         var colorControls = this.props.colors.map(function (c, i) {
             var handleClick = function() {
                 this.props.changeStrokeColor(c);
@@ -64,13 +66,14 @@ var Controls = React.createClass({
                 backgroundColor: c
             };
             var selectedClass = this.props.selectedColor == c ? 'selected' : 'deselected'
-            return (<span key={c} className={'color-select ' + selectedClass} style={style} onClick={handleClick} />);
+            return (<span key={c} className={'control color-select ' + selectedClass} style={style} onClick={handleClick} />);
         }.bind(this));
 
         return (<div id="controls">
             <span id="color-controls">{colorControls}</span>
             <span id="main-controls">
-                <span id="undo" className="fa fa-undo" onClick={this.props.undo}></span>
+                <span id="redo" className="control fa fa-repeat" onClick={this.props.redo}></span>
+                <span id="undo" className="control fa fa-undo" onClick={this.props.undo}></span>
             </span>
         </div>);
     },
@@ -94,6 +97,9 @@ var Annotation = React.createClass({
         }
     },
     render: function() {
+        if ( this.props.a.status == 'D' ) {
+            return null;
+        }
         var id = this.props.a.id;
         var elements = this.props.a.data.elements;
         var elts = elements.map(function (e, i) {
@@ -116,6 +122,7 @@ var AnnotationSet = React.createClass({
         var workingElement = {
             id: 'newid-' + this.state.numAdded,
             order: 9999 + this.state.numAdded,
+            status: 'A',
             data: {elements: [{
                 elt: 'path',
                 strokeAttrs: this.state.strokeAttrs,
@@ -212,29 +219,76 @@ var AnnotationSet = React.createClass({
         this.setState({strokeAttrs: sa});
     },
     undo: function() {
-        // undo == delete last annotation
+        // undo == delete last (non-deleted) annotation
         var data = this.state.data;
-        if ( data.length == 0 ) {
+        var ann = null;
+        for ( var i=data.length-1; i>=0; i-- ) {
+            ann = data[i];
+            if ( ann.status != 'D' ) {
+                break;
+            }
+        }
+        if ( ann == null ) {
             return;
         }
-        var ann_id = data[data.length - 1].id;
 
         $.ajax({
-            url: annotation_detail_url(slide_pk, ann_id),
+            url: annotation_detail_url(slide_pk, ann.id),
             type: 'DELETE',
+            dataType: 'text',
             beforeSend: function (request)
             {
                 request.setRequestHeader("X-CSRFToken", csrf_token);
             },
             success: function(d) {
+                ann.status = 'D';
                 this.setState({
-                    data: data.slice(0, data.length - 1)
+                    data: data
                 });
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props, status, err.toString());
             }.bind(this)
         });
+    },
+    redo: function() {
+        // redo == un-delete first deleted annotation
+        var data = this.state.data;
+        var ann = null;
+        var i;
+        for ( i=0; i<data.length; i++ ) {
+            ann = data[i];
+            if ( ann.status == 'D' ) {
+                break;
+            }
+        }
+        if ( ann == null ) {
+            return;
+        }
+
+        $.ajax({
+            url: annotation_detail_url(slide_pk, ann.id),
+            type: 'PATCH',
+            dataType: 'text',
+            contentType:"application/json; charset=utf-8",
+
+            beforeSend: function (request)
+            {
+                request.setRequestHeader("X-CSRFToken", csrf_token);
+            },
+            data: JSON.stringify({'status': 'A'}),
+
+            success: function(d) {
+                ann.status = 'A';
+                this.setState({
+                    data: data
+                });
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props, status, err.toString());
+            }.bind(this)
+        });
+
     },
 
     loadFromServer: function () {
@@ -256,6 +310,7 @@ var AnnotationSet = React.createClass({
     },
     getInitialState: function () {
         return {
+            presenter: this.props.canPresent,
             data: [],
             paint: false,
             numAdded: 0,
@@ -284,12 +339,15 @@ var AnnotationSet = React.createClass({
             onTouchEnd: this.handleDrawStop,
             onTouchCancel: this.handleDrawStop,
         };
+        if ( !this.state.presenter ) {
+            svgEvents = {};
+        };
 
         return (
             <div>
             <svg id="annotation-set" {...svg_attrs()} {...svgEvents}>{annotations}</svg>
             <Controls
-                undo={this.undo}
+                presenter={this.state.presenter} undo={this.undo} redo={this.redo}
                 colors={colors} selectedColor={this.state.strokeAttrs.stroke} changeStrokeColor={this.changeStrokeColor}
             />
             </div>
@@ -334,7 +392,7 @@ var Slide = React.createClass({
         return (
             <div id="slide">
             <div id="slide-contents" dangerouslySetInnerHTML={this.rawMarkup()}></div>
-            <AnnotationSet container={container} />
+            <AnnotationSet container={container} canPresent={presenter} />
             </div>
         );
     }
