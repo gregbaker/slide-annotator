@@ -1,13 +1,3 @@
-
-var strokeAttrs = function() {
-    return {
-        strokeWidth: widthUnits/400,
-        stroke: initialColor,
-        fill: 'none',
-        strokeLinejoin: 'round',
-    };
-};
-
 var size_props = function () {
     var style = {}
     if ( window.innerWidth/window.innerHeight > aspect ) {
@@ -25,7 +15,6 @@ var size_props = function () {
 };
 
 var svg_attrs = function () {
-    var slideSizeCSS;
     var sizeStyle = size_props();
     var style = {
         zIndex: 10,
@@ -37,7 +26,6 @@ var svg_attrs = function () {
     };
 
     return {
-        id: 'slide-overlay',
         width: widthUnits,
         height: heightUnits,
         viewBox: '0 0 ' + widthUnits + ' ' + heightUnits,
@@ -82,6 +70,7 @@ var Controls = React.createClass({
 
 var Annotation = React.createClass({
     pathAnnotationToPath: function (ann, key) {
+        //console.log('path', ann)
         var n = ann.pointsX.length;
         var d;
 
@@ -91,21 +80,26 @@ var Annotation = React.createClass({
             for ( var i=1; i<n; i++ ) {
                 d += ' ' + ann.pointsX[i] + ',' + ann.pointsY[i];
             }
-            return <path key={key} {...ann.strokeAttrs} d={d} />
+            return <path key={key} {...ann.attrs} d={d} />;
         } else {
             return null;
         }
+    },
+    textAnnotationToText: function (ann, key) {
+        //console.log('text', ann)
+        return <text key={key} x={ann.x} y={ann.y} {...ann.attrs}>{ann.text}</text>;
     },
     render: function() {
         if ( this.props.a.status == 'D' ) {
             return null;
         }
         var id = this.props.a.id;
-        var elements = this.props.a.data.elements;
-        var elts = elements.map(function (e, i) {
+        var elts = this.props.a.data.elements.map(function (e, i) {
             var key = id + '-' + i;
             if ( e.elt == 'path' ) {
-              return this.pathAnnotationToPath(e, key)
+                return this.pathAnnotationToPath(e, key)
+            } else if ( e.elt == 'text' ) {
+                return this.textAnnotationToText(e, key)
             }
         }.bind(this));
         return (
@@ -115,6 +109,20 @@ var Annotation = React.createClass({
 });
 
 var AnnotationSet = React.createClass({
+    pathAttrs: function() {
+        return {
+            strokeWidth: strokeWidth,
+            stroke: this.state.strokeColor,
+            fill: 'none',
+            strokeLinejoin: 'round',
+        };
+    },
+    textAttrs: function() {
+        return {
+            fill: this.state.strokeColor,
+            fontSize: fontSize,
+        };
+    },
     pathStart: function(x, y) {
         var x = x / this.props.container.offsetWidth * widthUnits;
         var y = y / this.props.container.offsetHeight * heightUnits;
@@ -125,20 +133,19 @@ var AnnotationSet = React.createClass({
             status: 'A',
             data: {elements: [{
                 elt: 'path',
-                strokeAttrs: this.state.strokeAttrs,
+                attrs: this.pathAttrs(),
                 pointsX: [roundCoordinate(x)],
                 pointsY: [roundCoordinate(y)],
             }]},
         }
 
         this.setState({
-            paint: true,
+            draw: true,
             numAdded: this.state.numAdded + 1,
             previousLength: this.state.data.length,
             workingElement: workingElement,
             data: this.state.data.concat([workingElement]),
         });
-
     },
     pathMore: function(x, y) {
         var x = x / this.props.container.offsetWidth * widthUnits;
@@ -150,13 +157,12 @@ var AnnotationSet = React.createClass({
         path.pointsY = path.pointsY.concat([roundCoordinate(y)])
 
         this.setState({
-                workingElement: workingElement,
-            });
-
+            workingElement: workingElement,
+        });
     },
     pathEnd: function() {
         this.setState({
-            paint: false,
+            draw: false,
         });
 
         var workingElement = this.state.workingElement;
@@ -186,12 +192,59 @@ var AnnotationSet = React.createClass({
         });
     },
 
+    typeStart: function(x, y) {
+        var x = x / this.props.container.offsetWidth * widthUnits;
+        var y = y / this.props.container.offsetHeight * heightUnits;
+
+        var workingElement = {
+            id: 'newid-' + this.state.numAdded,
+            order: 9999 + this.state.numAdded,
+            status: 'A',
+            data: {elements: [{
+                elt: 'text',
+                attrs: this.textAttrs(),
+                x: roundCoordinate(x),
+                y: roundCoordinate(y),
+                text: 'foo',
+            }]},
+        }
+
+        this.setState({
+            type: true,
+            numAdded: this.state.numAdded + 1,
+            previousLength: this.state.data.length,
+            workingElement: workingElement,
+            data: this.state.data.concat([workingElement]),
+        });
+        console.log('start', this.state)
+    },
+    typeMore: function (key) {
+        if ( key == 'Escape' ) {
+            this.typeEnd();
+            return;
+        }
+        var workingElement = this.state.workingElement;
+        var text = workingElement.data.elements[0];
+        //text.text = text.text + key;
+
+        this.setState({
+            //workingElement: workingElement,
+        });
+        console.log('more', this.state)
+    },
+    typeEnd: function (e) {
+        this.setState({
+            type: false,
+        });
+    },
+
+
     handleMouseDown: function(e) {
         e.preventDefault();
         this.pathStart(e.pageX, e.pageY);
     },
     handleMouseMove: function(e) {
-        if ( this.state.paint ) {
+        if ( this.state.draw ) {
             e.preventDefault();
             this.pathMore(e.pageX, e.pageY);
         }
@@ -201,22 +254,30 @@ var AnnotationSet = React.createClass({
         this.pathStart(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
     },
     handleTouchMove: function(e) {
-        if ( this.state.paint ) {
+        if ( this.state.draw ) {
             e.preventDefault();
             this.pathMore(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
         }className
     },
     handleDrawStop: function(e) {
-        if ( this.state.paint ) {
+        if ( this.state.draw ) {
             e.preventDefault();
             this.pathEnd();
         }
     },
+    handleDoubleClick: function(e) {
+        e.preventDefault();
+        this.typeStart(e.pageX, e.pageY);
+    },
+    handleKey: function(e) {
+        if ( this.state.type ) {
+            e.preventDefault();
+            this.typeMore(e.key);
+        }
+    },
 
     changeStrokeColor: function(c) {
-        var sa = this.state.strokeAttrs;
-        sa.stroke = c;
-        this.setState({strokeAttrs: sa});
+        this.setState({strokeColor: c});
     },
     undo: function() {
         // undo == delete last (non-deleted) annotation
@@ -292,7 +353,7 @@ var AnnotationSet = React.createClass({
     },
 
     loadFromServer: function () {
-        if ( this.state.paint ) {
+        if ( this.state.draw || this.state.type ) {
             // don't update while we're mutating the state by drawing.
             return;
         }
@@ -312,11 +373,12 @@ var AnnotationSet = React.createClass({
         return {
             presenter: this.props.canPresent,
             data: [],
-            paint: false,
+            draw: false,
+            type: false,
             numAdded: 0,
             workingElement: null,
             previousLength: 0,
-            strokeAttrs: strokeAttrs(),
+            strokeColor: initialColor,
         };
     },
     componentDidMount: function() {
@@ -338,6 +400,8 @@ var AnnotationSet = React.createClass({
             onTouchMove: this.handleTouchMove,
             onTouchEnd: this.handleDrawStop,
             onTouchCancel: this.handleDrawStop,
+            onDoubleClick: this.handleDoubleClick,
+            //onKeyPress: this.handleKeyPress,
         };
         if ( !this.state.presenter ) {
             svgEvents = {};
@@ -348,7 +412,7 @@ var AnnotationSet = React.createClass({
             <svg id="annotation-set" {...svg_attrs()} {...svgEvents}>{annotations}</svg>
             <Controls
                 presenter={this.state.presenter} undo={this.undo} redo={this.redo}
-                colors={colors} selectedColor={this.state.strokeAttrs.stroke} changeStrokeColor={this.changeStrokeColor}
+                colors={colors} selectedColor={this.state.strokeColor} changeStrokeColor={this.changeStrokeColor}
             />
             </div>
         );
@@ -379,6 +443,9 @@ var Slide = React.createClass({
     componentDidMount: function() {
         this.loadFromServer();
     },
+    handleKey: function (e) {
+        this.refs.annotationSet.handleKey(e);
+    },
     render: function() {
         var html = document.documentElement;
         var container = document.getElementById(this.props.containerId);
@@ -392,12 +459,18 @@ var Slide = React.createClass({
         return (
             <div id="slide">
             <div id="slide-contents" dangerouslySetInnerHTML={this.rawMarkup()}></div>
-            <AnnotationSet container={container} canPresent={presenter} />
+            <AnnotationSet container={container} canPresent={presenter} ref="annotationSet"/>
             </div>
         );
     }
 });
-ReactDOM.render(
+
+var rendered = ReactDOM.render(
     <Slide containerId='slide-container' />,
     document.getElementById('slide-container')
 );
+
+// onKeyPress and friends aren't working for the AnnotationSet. Get keypress events in jQuery and tunnel them in.
+$('body').on('keypress', function (e) {
+    rendered.handleKey(e);
+});
