@@ -5,7 +5,7 @@ end
 
 package "python3-pip"
 package "sqlite3"
-package "redis-server"
+package "npm"
 
 execute 'pip' do
   cwd '/home/vagrant/server'
@@ -14,8 +14,7 @@ end
 
 execute 'npm' do
   cwd '/home/vagrant/server'
-  user 'vagrant'
-  command 'npm install --save react react-dom babel-preset-es2015 babel-preset-react babel-cli jquery'
+  command 'npm install --save react react-dom babel-preset-es2015 babel-preset-react babel-cli jquery browser'
 end
 
 execute 'migrate' do

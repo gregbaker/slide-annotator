@@ -133,5 +133,5 @@ STATIC_ROOT = '_static'
 COMPRESS_PRECOMPILERS = (
    ('text/jsx', 'cat {infile} | ./node_modules/.bin/babel --presets es2015,react > {outfile}'),
 )
-#COMPRESS_ENABLED = True
+COMPRESS_ENABLED = True
 #COMPRESS_OFFLINE = True
